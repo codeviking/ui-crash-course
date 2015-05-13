@@ -1,0 +1,1141 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>ui-crash-course &#8212; a quick crash-course in ui development by @codeviking</title>
+
+		<meta name="description" content="A quick crash course in UI development">
+		<meta name="author" content="Sam Skjonsberg">
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/white.css" id="theme">
+
+		<!-- Code syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+		<div class="reveal">
+			<div class="slides">
+
+				<section data-markdown>
+					<script type="text/template">
+						# UI Development Crash-Course
+					</script>
+				</section>
+
+				<section data-markdown>
+					<script type="text/template">
+						## The Pieces
+						* webserver
+						* html
+						* ReactJS (javascript)
+						* less
+						* browserify
+						* gulp (build tool)
+						* npm
+					</script>
+				</section>
+
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+							## The Webserver
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## The Webserver
+
+							Serves the static assets (html, css, js) required for your UI.
+
+							We've got a pre-made template that makes it easy:
+
+							```
+							git clone git@github.com:allenai/templates
+							cd webapp
+							sbt
+							> reStart
+							open http://localhost:8080
+							```
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## Spray Routing
+							**spray** provides a custom dsl for defining routes, and it's pretty readable / easy to expand:
+							<pre><code contenteditable>startServer(interface = "0.0.0.0", port) {
+  respondWithHeaders(DisableCache) {
+    pathEndOrSingleSlash(getFromFile("public/index.html"))
+  } ~
+  respondWithHeaders(CacheControlMaxAge) {
+    getFromDirectory("public")
+  }
+}
+							</pre></code>
+						</script>
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+							## HTML
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## HTML5
+							Semantically describes your content for presentation purposes.
+
+							HTML5 (implied by the `<DOCTYPE html>` preamble) is a specific HTML specification
+							which includes a series of new elements and attributes.
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## Key New Elements
+							* `<section>`: seperate sections of content
+							* `<nav>`: container for the navigation particular to your document
+							* `<main>`: container for the main / primary content of your document
+							* `<header>`: document header
+							* `<footer>`: document footer
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## Serving HTML
+							Content can be delivered statically, by delivering an HTML document to the client.
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## Serving HTML
+							But for our applications we only serve one document, `index.html`, which includes
+							the key elements of our application.
+							<pre><code contenteditable>&lt;!DOCTYPE html&gt;&lt;html&gt;
+							  &lt;head&gt;
+							    &lt;title&gt;%TITLE%&lt;/title&gt;
+							    &lt;meta charset=&quot;utf-8&quot;&gt;
+							    &lt;link rel=&quot;stylesheet&quot; href=&quot;{{cache-break:/main.css}}&quot;&gt;
+							    &lt;link rel=&quot;icon&quot; href=&quot;{{cache-break:/assets/images/favicon.ico}}&quot;&gt;
+							  &lt;/head&gt;
+							  &lt;body&gt;
+							    &lt;script src=&quot;{{cache-break:/main.js}}&quot;&gt;&lt;/script&gt;
+							  &lt;/body&gt;
+							&lt;/html&gt;
+							</code></pre>
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## But wait, where's my content?
+						</script>
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+							## ReactJS
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## Reactify!
+							Contained in ReactJS components, rendered client-site:
+							<pre><code contenteditable>class SampleApplication extends React.Component {
+							  render() {
+							    return (
+								  &lt;div&gt;
+							        &lt;header className=&quot;padded&quot;&gt;
+										&lt;h1&gt;Sample Application&lt;/h1&gt;
+									&lt;/header&gt;
+							        &lt;main className=&quot;text-center padded&quot;&gt;
+										My awesome content!
+									&lt;/main&gt;
+							      &lt;/div&gt;
+							    );
+							  }
+							}
+							React.render(&lt;SampleApplication /&gt;, document.body);
+							</code></pre>
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## JSX
+							Technically, you're writing `jsx`, which is a document which combines XML and Javascript
+							<pre><code contenteditable>class SampleApplication extends React.Component {
+								render() {
+									return (
+										&lt;div&gt;
+											JSX
+										&lt;/div&gt;
+									);
+								}
+							}
+							React.render(&lt;SampleApplication /&gt;, document.body);
+							</code></pre>
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## JSX
+							The `jsx` is ran through a compiler at build-time (you can do it on the client), which converts the inline `JSX` to a raw API
+							for rendering HTML:
+							<pre><code contenteditable>class SampleApplication extends React.Component {
+								render() {
+									return React.DOM.div(null, 'JSX');
+								}
+							}
+							React.render(&lt;SampleApplication /&gt;, document.body);
+							</code></pre>
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## What about browsers without javascript?
+							React can render on the server too via `nodejs` (this is how S2 works) &#8212; but
+							you don't need to worry about this for the applications you'll be building:
+							<pre><code contenteditable>React.renderToString(&lt;SampleApplication /&gt;)</code></pre>
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## React Components
+							To define a component, `extend` the `React.Component` class.
+							<pre><code contenteditable>class SampleApplication extends React.Component {
+								// implementation
+							}</code></pre>
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## React Components
+							The `render` method defines the component's output:
+							<pre><code contenteditable>class SampleApplication extends React.Component {
+								render() {
+									return (
+										&lt;div&gt;
+											Foobar!
+										&lt;/div&gt;
+									);
+								}
+							}</code></pre>
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## React Components
+							Remember, it's `XML`, so there are a few differences:
+
+							You must have a single opening tag in your `render()` method:
+							<pre><code contenteditable>render() {
+								// Won't work!
+								return (
+									&lt;div&gt;
+										Foo!
+									&lt;/div&gt;
+									&lt;div&gt;
+										Bar!
+									&lt;/div&gt;
+								);
+							}
+							</pre></code>
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## React Components
+							All tags must be closed.
+
+							You can use `<self-closing />` tags.
+							<pre><code contenteditable>
+							// Works
+							return (
+								&lt;div /&gt;
+							)
+							// Won't work!
+							return (
+								&lt;div&gt; Foobar!
+							)
+							</pre></code>
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## React Components
+							There's a few HTML attributes which are rewritten, since they're used in XML as well.
+
+							The HTML `class` attribute is specified via `className`
+							<pre><code contenteditable>
+							return &lt;div className="foobar"&gt;&lt;/div&gt;
+							</pre></code>
+
+							The `style` attribute is an object:
+							<pre><code contenteditable>
+							var styles = { color: 'white', background: 'red' };
+							return &lt;div style={styles}&gt;
+							</pre></code>
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## React Components
+							Defining a component registers a **`tag`** that can be used as JSX as long as the
+							component is in scope:
+
+							<pre><code contenteditable>class CustomButton extends React.Component {
+								// ...
+							}
+							class MyApplication extends React.Component {
+								render() {
+									return &lt;CustomButton text="Click This!" /&gt;;
+								}
+							}
+							</pre></code>
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## React Components
+							Components can be instantiated with initial values, via **`props`**:
+							<pre><code contenteditable>class UserName extends React.Component {
+								constructor(props) {
+									super(props); // this is required
+								}
+								render() {
+									return &lt;div className="user-name"&gt;{this.props.name}&lt;/div&gt;
+								}
+							}
+							class MyApplication extends React.Component {
+								render() {
+									return &lt;UserName name="@codeviking" /&gt;;
+								}
+							}
+							</pre></code>
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## React Components
+							Components also have **`state`**.
+
+							A components **`state`** should be used to store properties which, when changed, impact the
+							component's output.
+							<pre><code contenteditable>class UserName extends React.Component {
+								constructor(props) {
+									super(props); // this is required
+									this.state = { name: this.props.name };
+								}
+								render() {
+									return &lt;div className="user-name"&gt;{this.state.name}&lt;/div&gt;
+								}
+							}
+							</pre></code>
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## ReactComponents
+							State can be mutated via
+
+							 **`setState(state, [callback])`**
+
+							**`state`**: Updated state properties. Merged with the current state.
+
+							**`[callback]`**: Optional callback to be executed once the effect of the state mutation
+							has been applied.
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## ReactComponents
+							Upon invoking `setState(state)`, the rendered content is updated *only if necessary.*
+							<pre><code contenteditable>class Counter extends React.Component {
+								constructor() {
+									this.state = { count: 0 };
+								}
+								componentDidMount() {
+									setInterval(function() {
+										this.setState({ count: this.state.count++ });
+									}.bind(this), 1000);
+								}
+								render() {
+									return (
+										&lt;span&gt;
+											{this.state.count}
+										&lt;/span&gt;
+
+									);
+								}
+							}</code></pre>
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## ReactComponents
+							Components also have lifecycle methods.
+
+							**`componentDidMount()`**: Invoked once after initial render.
+
+							**`componentWillUnmount()`**: Invoked prior to the component being removed from the document.
+
+							And a whole lot more [https://facebook.github.io/react/docs/component-specs.html](https://facebook.github.io/react/docs/component-specs.html)
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## What about behavior?
+							ReactJS provides the ability to bind to and respond to UI events.
+							<pre><code contenteditable>class ClickableButton extends React.Component {
+								onClickHandler() {
+									alert('Hey dude! You clicked me');
+								},
+								render() {
+									return (
+										&lt;button onClick={this.onClickHandler}&gt;
+											Click Me!
+										&lt;/button&gt;
+									);
+								}
+							}</code></pre>
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## Not so fast...
+							But there's a catch, what's wrong with this code?
+							<pre><code contenteditable>class ClickableButton extends React.Component {
+								constructor() {
+									this.message = 'You clicked me!';
+								}
+								onClickHandler() {
+									alert(this.message);
+								},
+								render() {
+									return (
+										&lt;button onClick={this.onClickHandler}&gt;
+											Click Me!
+										&lt;/button&gt;
+									);
+								}
+							}</code></pre>
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## What about my data?
+							This could be another meeting of it's own, but there's a lot of existing approaches
+							in place:
+
+							[https://facebook.github.io/flux/](https://facebook.github.io/flux/)
+						</script>
+					</section>
+
+				</section>
+
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+							## LESS
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## LESS
+
+							LESS is a css pre-processor.
+
+							The LESS files are converted into CSS, either at runtime or compile time.
+
+							LESS provides a series of features which make CSS more maintainable.
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## LESS
+
+							You can define variables:
+
+							```
+							@gray: #d5d5d5;
+
+							.some-rule {
+								background: @gray;
+							}
+							```
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## LESS
+
+							You can define functions:
+
+							```
+							.background(@color) {
+								background: @color;
+							}
+
+							.some-rule {
+								.background(@color);
+							}
+							```
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## LESS
+
+							You can merge selectors:
+
+							```
+							.some-rule {
+								background: green;
+							}
+
+							.some-other-rule {
+								.some-rule; // will apply "background: green;" here.
+								color: white;
+							}
+							```
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## LESS
+
+							Nested classes
+
+							```
+							.some-rule {
+								.some-other-rule {
+									background: green;
+								}
+							}
+							```
+
+							Becomes
+
+							```
+							.some-rule .some-other-rule {
+								background: green;
+							}
+							```
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## LESS
+
+							Expand selections:
+
+							```
+							.link {
+								color: red;
+
+								&:hover {
+									color: blue;
+								}
+							}
+							```
+
+							Is the same as:
+							```
+							.link {
+								color: red;
+							}
+							.link:hover {
+								color: red;
+							}
+							```
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## LESS
+
+							Just the tip of the iceberg...
+
+							[http://lesscss.org/features](http://lesscss.org/features)
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## CSS Selectors
+
+							A key part of css are **selectors**.
+
+							A **selector** dictates what elements the defined properties apply to.
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## CSS Selectors
+
+							The **`.`** indicates a class based selector.
+
+							```
+							.text-red { color: red; }
+							```
+							```
+							<span class="red-text">Red!</span>
+							```
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## CSS Selectors
+
+							The **`#`** indicates an id based selector.
+
+							An id is a unique identifier of an element; Only one should element with a given id
+							should exist per document (use it sparingly).
+
+							```
+							#username { color: red; }
+							```
+							```
+							<span id="username">@codeviking</span>
+							```
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## CSS Selectors
+
+							The **`[attribute]`** selector can be used to select elements with specific attributes.
+
+							```
+							[disabled] {
+								opacity: 0.3;
+							}
+							```
+							```
+							<input disabled value="Disabled"></input>
+							```
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## CSS Selectors
+
+							You can also style all elements of a given `tag` with the tag selector.
+
+							```
+							button { border: red; padding: 10px; }
+							```
+							```
+							<button>Click Me!</button>
+							```
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## CSS Selectors
+
+							There's a whole lot more...
+						</script>
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+							## Browserify
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## Browserify
+
+							The CommonJS specification allows javascript to be split into individual files with
+							explicit exports.
+
+							```
+							// custom-button.js
+							class CustomButton extends React.Component {
+								// ...
+							}
+							module.exports = CustomButton;
+							```
+
+							```
+							// some other file
+							var Button = require('./custom-button');
+							class MyApp extends React.Component {
+								render() {
+									return <Button />;;
+								}
+							}
+							```
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## Browserify
+
+							Browserify is a command-line tool which prepares a browser-compatible bundle given
+							a single javascript file.
+
+							The bundle includes all of the dependencies loaded via `require()`.
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## Browserify
+
+							The syrup stack does this automatically for you &#8212; the takeaway being you can use
+							`require()` and `module.exports` freely.
+						</script>
+					</section>
+
+				</section>
+
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+							## gulp
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## gulp
+
+							**`gulp`** is a streaming build tool.
+
+							```
+							var gulp = require('gulp');
+							var lessc = require('gulp-less');
+							var concat = require('gulp-concat');
+
+							// executing gulp compile-less-to-css triggers this task
+							gulp.task('compile-less-to-css', function() {
+								return gulp.src('app/**/*.less')
+									.pipe(lessc)
+									.pipe(concat('main.css'))
+									.pipe(gulp.dest('build'));
+							});
+							```
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## Gulp
+
+							The syrup library includes a base set of tasks common across our projects, likely everyting you'll need.
+
+							```
+							var gulp = require('gulp');
+							var syrup = require('syrup')
+							syrup.gulp.init(
+								gulp,
+								// options
+								{
+									compressJs: false
+								},
+								// config
+								{
+									'%TITLE%': 'My Awesome App!'
+								},
+								// paths
+								{
+									build: '../public'
+								}
+							);
+							```
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## Gulp
+
+							Syrup also includes a series of base styles which you can include by simply importing
+							the less file:
+
+							```
+							// put this in your application's less file
+							@import '../node_modules/syrup/less/syrup.less'
+							```
+
+							More here: [http://allenai.github.io/syrup/](http://allenai.github.io/syrup/)
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## gulp
+
+							Our **`sbt reStart`** command automatically runs the gulp build.
+
+							*And* due to recent **@jkinkead** magic, the UI is rebuilt as you make changes
+							to the front-end code base.
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## Gulp
+
+							Full docs and source &#8212; contribute!
+
+							[https://github.com/allenai/syrup](https://github.com/allenai/syrup)
+						</script>
+					</section>
+
+				</section>
+
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+							## npm
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## npm
+
+							**`npm`** is a package manager for javascript / front-end libraries
+
+							It comes bundled with [https://nodejs.org/](https://nodejs.org/)
+
+							```
+							npm
+							```
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## npm
+
+							You can initialize a new project via **`npm init`**
+
+							This will create a new **`package.json`** file in the directory where you called **`npm init`**.
+
+							```
+							{
+							  "name": "ui-crash-course",
+							  "version": "1.0.0",
+							  "description": "An awesome intro into ui development.",
+							  "repository": {
+							    "type": "git",
+							    "url": "https://github.com/codeviking/ui-crash-course"
+							  },
+							  "author": "Sam Skjonsberg",
+							  "license": "ISC",
+							  "bugs": {
+							    "url": "https://github.com/codeviking/ui-crash-course/issues"
+							  },
+							  "homepage": "https://github.com/codeviking/ui-crash-course"
+							}
+							```
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## npm
+
+							You can search for dependencies either via **`npm search <package name>`** or
+							via [http://npmjs.org](http://npmjs.org)
+
+							```
+							npm search syrup
+							```
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## npm
+
+							To install a dependency, type `npm install --save <package-name>` or `npm install --save-dev <package-name>` to specify it as a
+							dependency which is only required for development purposes.
+
+							```
+							npm install --save syrup
+							```
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## npm
+
+							Installing a dependency adds an entry to your `package.json` like so:
+
+							```
+							"dependencies": {
+								"syrup": "0.1.16"
+							}
+							```
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## npm
+
+							Running npm install without parameters installs all dependencies in the `package.json` file which haven't been installed yet.
+
+							```
+							npm install
+							```
+
+							Dependencies are installed into the `node_modules` directory, relative to the current path.
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## npm
+
+							The **`require()`** command automatically resolves dependencies by looking at the **`node_modules`** directory (and parent **`node_modules`**) directories, until
+							a dependency is resolved.
+
+							More [here](https://nodejs.org/docs/latest/api/modules.html#modules_loading_from_node_modules_folders).
+
+							```
+							var syrup = require('syrup'); // loaded from node_modules
+							var localDependency = require('../some/local/dependency');
+							```
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## npm
+
+							Our magic `sbt reStart` command automatically runs `npm install`, so you don't really need
+							to worry about it.
+						</script>
+					</section>
+
+				</section>
+
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+							# DEV TRICKS
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							# console
+							You can dump data to your browser's console via **`console.log(content)`**.
+
+							The console renders things pretty nicely, you can dump primitives, objects, really anything.
+
+							```
+							console.log('foo');
+							console.log({ foo: { bar: 'baz' }});
+							```
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							# console
+							To show the console, right-click and hit "inspect-element", then select the "console" option.
+
+							<img src="images/inspect-element.png">
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							# console
+							<img src="images/console.png">
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							# debugger
+							The browser also includes a debugger.  You can invoke it either by adding break points
+							using the GUI or by adding a **`debugger`** statement to your code:
+
+							```
+							while (++i < 100) {
+								if (i > 10) {
+									debugger;
+								}
+							}
+							```
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							# inspect element
+							The browser also includes the capability to inspect elements, dynamically manipulate styles
+							and view the actual, computed styles which are applied.
+
+							<img src="images/style.png">
+						</script>
+					</section>
+				</section>
+
+				<section>
+					<section data-markdown>
+						<script type="text/template">
+							## Wow...that's a lot of stuff
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## spray-http serves our static assets
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## ReactJS renders content and defines behavior
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## LESS defines the style of the content we render
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## gulp executes our front-end build
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## browserify helps us bundle things together for the browser
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## npm helps us manage dependencies
+						</script>
+					</section>
+
+					<section data-markdown>
+						<script type="text/template">
+							## and [sams@allenai.org](sams@allenai.org) actually loves this stuff...so don't hesitate to ask him questions
+						</script>
+					</section>
+
+				</section>
+
+				<section data-markdown>
+					<script type="text/template">
+						# Thanks!
+
+						@marks and @jkinkead both deserve a hefty pat on the back for their contributions to the stack.
+
+						These slides are available here: [http://codeviking.github.io/ui-crash-course](http://codeviking.github.io/ui-crash-course)
+					</script>
+				</section>
+			</div>
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+
+			// Full list of configuration options available at:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+
+				transition: 'convex', // none/fade/slide/convex/concave/zoom
+
+				// Optional reveal.js plugins
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/highlight/highlight.js', async: true, condition: function() { return true; }, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/zoom-js/zoom.js', async: true },
+					{ src: 'plugin/notes/notes.js', async: true }
+				]
+			});
+
+		</script>
+
+	</body>
+</html>
